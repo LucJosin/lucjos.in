@@ -9,7 +9,7 @@
 
 <div align="center">
   
- # lucjos.in - Personal URL Shortener
+ # qorv.in - Personal URL Shortener
 A personal URL shortener and API designed for a single domain, built with Go and MySQL (MariaDB). Features include analytics tracking, token management, and organized folder structures.
 
 </div>
