@@ -1,16 +1,17 @@
 <div align="center">
   <a href="https://www.lucasjosino.com/?utm_source=github.com&utm_medium=profile#gh-dark-mode-only">
-    <img src="https://raw.githubusercontent.com/LucJosin/lucasjosino.com/6e7fc0131eb85bbaf3478cc1f39d76bf9f51584f/public/animated-logo-white.svg#gh-dark-mode-only" height="64" width="64">
+    <img width="96" height="96" alt="qorv in-2" src="https://github.com/user-attachments/assets/ce8b6885-5bff-47ec-bffc-e5c88e2ad8dc#gh-dark-mode-only" />
   </a>
   <a href="https://www.lucasjosino.com/?utm_source=github.com&utm_medium=profile#gh-light-mode-only">
-    <img src="https://raw.githubusercontent.com/LucJosin/lucasjosino.com/6e7fc0131eb85bbaf3478cc1f39d76bf9f51584f/public/animated-logo.svg#gh-light-mode-only" height="64" width="64">
+    <img width="96" height="96" alt="qorv in" src="https://github.com/user-attachments/assets/ac119be4-227d-4f82-8d07-d3b7a81574da#gh-light-mode-only" />
   </a>
 </div>
 
 <div align="center">
   
  # qorv.in - Personal URL Shortener
-A personal URL shortener and API designed for a single domain, built with Go and MySQL (MariaDB). Features include analytics tracking, token management, and organized folder structures.
+A self-hosted, personal URL shortener and API for individuals and small teams. \
+`qorv.in` supports multiple custom domains, analytics, token management, and organized link collections with lightweight user management.
 
 </div>
 
@@ -25,10 +26,10 @@ A personal URL shortener and API designed for a single domain, built with Go and
 **Key Features:**
 
 * **Shorten URLs:** Easily create short, memorable aliases for your long URLs.
-* **Customizable:** Organize your shortened links into folders for better management.
-* **Track Performance:** Gain valuable insights with analytics on click-through rates and usage trends.
+* **Customizable:** Organize your shortened links into collections for better management.
+* **Track Performance:** Insights with analytics on click-through rates and usage trends.
 * **Tokens for URLs:** Utilize tokens for secure access to URLs.
-* **Auth:** User authentication with session.
+* **Auth:** User login via session auth. Supports Google and GitHub OIDC.
 
 **Technology Stack:**
 
