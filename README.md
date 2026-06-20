@@ -19,9 +19,7 @@ A self-hosted, personal URL shortener and API for individuals and small teams. \
 > This Project is Under Active Development.
 
 > [!NOTE]
-> This project is a complete rewrite and successor to the archived version: [lucjos.in-old](https://github.com/LucJosin/lucjos.in-old).
-> 
-> The previous repository has been archived and is no longer updated.
+> This project is a complete rewrite to the archived version: [lucjos.in-old](https://github.com/LucJosin/lucjos.in-old).
 
 **Key Features:**
 
