@@ -1,7 +1,87 @@
 package main
 
-import "fmt"
+import (
+	"context"
+	"errors"
+	"log/slog"
+	"net/http"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"github.com/lucjosin/qorv.in/internal/api"
+
+	"github.com/caarlos0/env/v11"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+)
+
+type ServerConfig struct {
+	Port           string `env:"PORT" envDefault:":4512"`
+	URL            string `env:"URL"`
+	AllowedOrigins string `env:"ALLOWED_ORIGINS"`
+}
+
+type Config struct {
+	Server ServerConfig `envPrefix:"SERVER_"`
+}
 
 func main() {
-	fmt.Println("Hello, Qorv.in!")
+	// setup signal handling for graceful shutdown
+	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer cancel()
+
+	var cfg Config
+	err := env.Parse(&cfg)
+	if err != nil {
+		slog.Error(err.Error())
+		return
+	}
+	if cfg.Server.URL == "" {
+		cfg.Server.URL = "http://0.0.0.0" + cfg.Server.Port
+	}
+
+	r := chi.NewRouter()
+	r.Use(middleware.Recoverer)
+	r.Use(middleware.Timeout(15 * time.Second))
+	r.Use(middleware.Compress(5))
+	r.Use(middleware.AllowContentType("application/json"))
+
+	r.Route("/api", func(r chi.Router) {
+		// public routes
+		api.NewHandler().RegisterRoutes(r)
+	})
+
+	errLog := slog.NewLogLogger(slog.DiscardHandler, slog.LevelError)
+	server := http.Server{
+		Handler:      r,
+		Addr:         cfg.Server.Port,
+		ErrorLog:     errLog,
+		ReadTimeout:  15 * time.Second,
+		WriteTimeout: 15 * time.Second,
+	}
+
+	go func() {
+		slog.Info("server listening and serving on " + cfg.Server.Port)
+
+		err := server.ListenAndServe()
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			slog.Error(err.Error())
+			return
+		}
+	}()
+
+	// interrupt signal
+	<-ctx.Done()
+
+	shutdownCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
+	err = server.Shutdown(shutdownCtx)
+	if err != nil {
+		slog.Error(err.Error())
+		return
+	}
+
+	slog.Info("server stopped")
 }

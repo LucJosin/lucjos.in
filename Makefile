@@ -7,6 +7,15 @@ BLUE    := $(shell tput -Txterm setaf 4)
 CYAN    := $(shell tput -Txterm setaf 6)
 RESET   := $(shell tput -Txterm sgr0)
 
+# Env
+ENV := set -a; . "./.env"; set +a;
+
+## Server
+
+.PHONY: run
+run: ## Run the server application
+	@$(ENV) go run apps/server/cmd/main.go
+
 ## Help
 
 .PHONY: help
