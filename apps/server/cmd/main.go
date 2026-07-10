@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/lucjosin/qorv.in/internal/api"
+	"github.com/lucjosin/qorv.in/internal/slogx"
 
 	"github.com/caarlos0/env/v11"
 	"github.com/go-chi/chi/v5"
@@ -31,11 +32,15 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
 
-	var cfg Config
-	err := env.Parse(&cfg)
+	ctx, log, err := slogx.NewWithContext(ctx)
 	if err != nil {
-		slog.Error(err.Error())
-		return
+		panic(err)
+	}
+
+	var cfg Config
+	err = env.Parse(&cfg)
+	if err != nil {
+		log.Panic(err)
 	}
 	if cfg.Server.URL == "" {
 		cfg.Server.URL = "http://0.0.0.0" + cfg.Server.Port
@@ -52,7 +57,7 @@ func main() {
 		api.NewHandler().RegisterRoutes(r)
 	})
 
-	errLog := slog.NewLogLogger(slog.DiscardHandler, slog.LevelError)
+	errLog := slog.NewLogLogger(log.Handler(), slog.LevelError)
 	server := http.Server{
 		Handler:      r,
 		Addr:         cfg.Server.Port,
@@ -62,12 +67,11 @@ func main() {
 	}
 
 	go func() {
-		slog.Info("server listening and serving on " + cfg.Server.Port)
+		log.Info("server listening and serving on " + cfg.Server.Port)
 
 		err := server.ListenAndServe()
 		if err != nil && !errors.Is(err, http.ErrServerClosed) {
-			slog.Error(err.Error())
-			return
+			log.Panic(err)
 		}
 	}()
 
@@ -79,9 +83,8 @@ func main() {
 
 	err = server.Shutdown(shutdownCtx)
 	if err != nil {
-		slog.Error(err.Error())
-		return
+		log.Panic(err)
 	}
 
-	slog.Info("server stopped")
+	log.Info("server stopped")
 }
