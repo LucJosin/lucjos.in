@@ -27,7 +27,7 @@ ENV := set -a; . "./.env"; set +a;
 
 .PHONY: server/run
 server/run: ## Run the server application
-	@$(ENV) go run $(SERVER_DIR)/cmd/main.go
+	@$(ENV) cd $(SERVER_DIR) && go run cmd/main.go
 
 ## Migration
 
@@ -37,7 +37,8 @@ migrate/new: ## Create a new server migration. Usage: make migrate/new NAME=crea
 		echo "ERROR: NAME is required. Example: make migrate/new NAME=create_users"; \
 		exit 1; \
 	fi
-	@go run github.com/golang-migrate/migrate/v4/cmd/migrate create -ext sql -dir $(MIGRATIONS_DIR) -seq $(NAME)
+	@cd $(SERVER_DIR) && go run github.com/golang-migrate/migrate/v4/cmd/migrate \
+		create -ext sql -dir $(MIGRATIONS_DIR) -seq $(NAME)
 
 .PHONY: migrate/up
 migrate/up: ## Run server migrations
