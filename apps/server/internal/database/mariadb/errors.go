@@ -37,8 +37,6 @@ func ParseError(err error, fallback string) error {
 			return fmt.Errorf("%w: required field missing", errs.ErrInvalid)
 		case CheckViolation:
 			return fmt.Errorf("%w: check failed", errs.ErrInvalid)
-		default:
-			return fmt.Errorf("%s: %w", fallback, err)
 		}
 	}
 	return fmt.Errorf("%s: %w", fallback, err)
