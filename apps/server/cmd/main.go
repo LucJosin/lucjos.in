@@ -10,12 +10,23 @@ import (
 	"time"
 
 	"github.com/lucjosin/qorv.in/internal/api"
+	"github.com/lucjosin/qorv.in/internal/database/mariadb"
 	"github.com/lucjosin/qorv.in/internal/slogx"
 
 	"github.com/caarlos0/env/v11"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
+
+type DatabaseConfig struct {
+	Host         string `env:"HOST,required"`
+	User         string `env:"USER,required"`
+	Password     string `env:"PASSWORD,required"`
+	Name         string `env:"NAME,required"`
+	Port         int    `env:"PORT,required"`
+	MaxOpenConns int    `env:"MAX_OPEN_CONN" envDefault:"5"`
+	MaxIdleConns int    `env:"MAX_IDLE_CONN" envDefault:"2"`
+}
 
 type ServerConfig struct {
 	Port           string `env:"PORT" envDefault:":4512"`
@@ -24,7 +35,8 @@ type ServerConfig struct {
 }
 
 type Config struct {
-	Server ServerConfig `envPrefix:"SERVER_"`
+	Server   ServerConfig   `envPrefix:"SERVER_"`
+	Database DatabaseConfig `envPrefix:"DATABASE_"`
 }
 
 func main() {
@@ -45,6 +57,25 @@ func main() {
 	if cfg.Server.URL == "" {
 		cfg.Server.URL = "http://0.0.0.0" + cfg.Server.Port
 	}
+
+	db, err := mariadb.Open(ctx, mariadb.Config{
+		Host:         cfg.Database.Host,
+		Port:         cfg.Database.Port,
+		User:         cfg.Database.User,
+		Password:     cfg.Database.Password,
+		DatabaseName: cfg.Database.Name,
+		MaxOpenConns: cfg.Database.MaxOpenConns,
+		MaxIdleConns: cfg.Database.MaxIdleConns,
+	})
+	if err != nil {
+		log.Panic(err)
+	}
+	defer func() {
+		err := db.Close()
+		if err != nil {
+			log.Error("closing database connection", "error", err)
+		}
+	}()
 
 	r := chi.NewRouter()
 	r.Use(middleware.Recoverer)
