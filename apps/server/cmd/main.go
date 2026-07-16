@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os/signal"
@@ -11,12 +12,23 @@ import (
 
 	"github.com/lucjosin/qorv.in/internal/api"
 	"github.com/lucjosin/qorv.in/internal/database/mariadb"
+	"github.com/lucjosin/qorv.in/internal/domain/system"
+	"github.com/lucjosin/qorv.in/internal/domain/user"
+	"github.com/lucjosin/qorv.in/internal/errs"
 	"github.com/lucjosin/qorv.in/internal/slogx"
 
 	"github.com/caarlos0/env/v11"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
+
+type AppConfig struct {
+	Domain        string `env:"DOMAIN,required"`
+	Username      string `env:"USERNAME,required"`
+	Password      string `env:"PASSWORD,required"`
+	Email         string `env:"EMAIL,required"`
+	WorkspaceName string `env:"WORKSPACE_NAME" envDefault:"Main"`
+}
 
 type DatabaseConfig struct {
 	Host         string `env:"HOST,required"`
@@ -35,8 +47,9 @@ type ServerConfig struct {
 }
 
 type Config struct {
-	Server   ServerConfig   `envPrefix:"SERVER_"`
+	App      AppConfig      `envPrefix:"APP_"`
 	Database DatabaseConfig `envPrefix:"DATABASE_"`
+	Server   ServerConfig   `envPrefix:"SERVER_"`
 }
 
 func main() {
@@ -76,6 +89,19 @@ func main() {
 			log.Error("closing database connection", "error", err)
 		}
 	}()
+
+	// system
+	systemRepo := system.NewMariaDBRepository(db)
+	systemService := system.NewService(systemRepo)
+
+	// user
+	userRepo := user.NewMariaDBRepository(db)
+	userService := user.NewService(userRepo)
+
+	err = serverBootstrap(ctx, cfg, systemService, userService)
+	if err != nil {
+		log.Panic(err)
+	}
 
 	r := chi.NewRouter()
 	r.Use(middleware.Recoverer)
@@ -118,4 +144,57 @@ func main() {
 	}
 
 	log.Info("server stopped")
+}
+
+// serverBootstrap initializes the server.
+func serverBootstrap(ctx context.Context, cfg Config, systemService system.Service, userService user.Service) error {
+	log := slogx.FromCtx(ctx)
+	log.Debug("bootstrapping server")
+
+	systemEntity, err := systemService.Info(ctx)
+	if err != nil {
+		if !errors.Is(err, errs.ErrNotFound) {
+			return fmt.Errorf("loading system info: %w", err)
+		}
+		log.Info("system configuration not found, initiating first-time setup")
+
+		// find or create the initial bootstrap user
+		userEntity, created, err := userService.FindOrCreateByUsername(ctx, user.User{
+			FirstName: cfg.App.Username,
+			Username:  cfg.App.Username,
+			Password:  cfg.App.Password,
+			Email:     cfg.App.Email,
+		})
+		if err != nil {
+			return fmt.Errorf("creating default bootstrap user: %w", err)
+		}
+		if created {
+			log.Info("default bootstrap user created", "user", userEntity.Username)
+		} else {
+			log.Info("default bootstrap user already exists, using existing account", "user", userEntity.Username)
+		}
+
+		// TODO: setup workspace and domain
+
+		// set this user as the immutable owner of the system
+		err = systemService.Configure(ctx, userEntity.ID)
+		if err != nil {
+			return fmt.Errorf("configuring system: %w", err)
+		}
+		log.Info("system successfully initialized")
+
+		return nil
+	}
+
+	userEntity, err := userService.FindByID(ctx, systemEntity.OwnerUserID)
+	if err != nil {
+		return fmt.Errorf("loading system owner: %w", err)
+	}
+
+	if userEntity.Username != cfg.App.Username {
+		return fmt.Errorf("local configuration username does not match registered system owner")
+	}
+
+	log.Info("server bootstrap complete")
+	return nil
 }
