@@ -81,7 +81,7 @@ docker/down: ## Remove all local containers.
 	@docker compose -f ${COMPOSE_PATH} down --remove-orphans
 
 .PHONY: docker/reset
-docker/reset: docker-down ## Stop, delete, build and start all local containers.
+docker/reset: docker/down ## Stop, delete, build and start all local containers.
 	@$(ENV) docker compose -f ${COMPOSE_PATH} up -d
 
 ## Help
