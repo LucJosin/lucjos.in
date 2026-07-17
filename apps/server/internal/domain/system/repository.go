@@ -11,7 +11,7 @@ import (
 
 type Repository interface {
 	FindOne(ctx context.Context) (System, error)
-	Create(ctx context.Context, ownerUserID uuid.UUID) error
+	Create(ctx context.Context, ownerUserID uuid.UUID) (System, error)
 }
 
 func scanRow(row interface{ Scan(...any) error }) (System, error) {

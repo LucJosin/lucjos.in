@@ -182,11 +182,11 @@ func serverBootstrap(ctx context.Context, cfg Config, systemService system.Servi
 		}
 
 		// set this user as the immutable owner of the system
-		err = systemService.Configure(ctx, userEntity.ID)
+		systemEntity, err = systemService.Configure(ctx, userEntity.ID)
 		if err != nil {
 			return fmt.Errorf("configuring system: %w", err)
 		}
-		log.Info("system successfully configured")
+		log.Info("system configured")
 	}
 
 	if (userEntity == user.User{}) {
@@ -208,7 +208,7 @@ func serverBootstrap(ctx context.Context, cfg Config, systemService system.Servi
 		return fmt.Errorf("configuring domain: %w", err)
 	}
 	if created {
-		log.Info("system domain successfully configured", "domain", cfg.App.Domain)
+		log.Info("system domain configured", "domain", cfg.App.Domain)
 	} else {
 		log.Info("system domain already exists, using existing one", "domain", cfg.App.Domain)
 	}

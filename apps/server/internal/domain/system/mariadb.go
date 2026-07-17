@@ -39,7 +39,8 @@ func (r *MariaDBRepository) FindOne(ctx context.Context) (System, error) {
 	return entity, nil
 }
 
-func (r *MariaDBRepository) Create(ctx context.Context, ownerUserID uuid.UUID) error {
+func (r *MariaDBRepository) Create(ctx context.Context, ownerUserID uuid.UUID) (System, error) {
+	entity := System{}
 	err := tx.BeginFunc(ctx, r.db, func(tx *sql.Tx) error {
 		now := time.Now()
 
@@ -60,7 +61,10 @@ func (r *MariaDBRepository) Create(ctx context.Context, ownerUserID uuid.UUID) e
 			return mariadb.ParseError(err, "saving system configuration")
 		}
 
+		entity.OwnerUserID = ownerUserID
+		entity.CreatedAt = now
+		entity.UpdatedAt = now
 		return nil
 	})
-	return err
+	return entity, err
 }

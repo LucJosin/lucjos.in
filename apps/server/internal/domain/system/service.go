@@ -8,7 +8,7 @@ import (
 
 type Service interface {
 	Info(ctx context.Context) (System, error)
-	Configure(ctx context.Context, ownerUserID uuid.UUID) error
+	Configure(ctx context.Context, ownerUserID uuid.UUID) (System, error)
 }
 
 type service struct {
@@ -25,6 +25,6 @@ func (s *service) Info(ctx context.Context) (System, error) {
 	return s.repo.FindOne(ctx)
 }
 
-func (s *service) Configure(ctx context.Context, ownerUserID uuid.UUID) error {
+func (s *service) Configure(ctx context.Context, ownerUserID uuid.UUID) (System, error) {
 	return s.repo.Create(ctx, ownerUserID)
 }
