@@ -160,10 +160,11 @@ func serverBootstrap(ctx context.Context, cfg Config, systemService system.Servi
 
 		// find or create the initial bootstrap user
 		userEntity, created, err := userService.FindOrCreateByUsername(ctx, user.User{
-			FirstName: cfg.App.Username,
-			Username:  cfg.App.Username,
-			Password:  cfg.App.Password,
-			Email:     cfg.App.Email,
+			FirstName:     cfg.App.Username,
+			Username:      cfg.App.Username,
+			Password:      cfg.App.Password, // TODO: hash the password
+			Email:         cfg.App.Email,
+			EmailVerified: true,
 		})
 		if err != nil {
 			return fmt.Errorf("creating default bootstrap user: %w", err)
