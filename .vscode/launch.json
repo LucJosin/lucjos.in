@@ -1,0 +1,13 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run current file",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${fileDirname}", // Compiles the package of the currently open file
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

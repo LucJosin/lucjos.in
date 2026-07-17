@@ -1,0 +1,13 @@
+{
+    // format all files on save if a formatter is available
+    "editor.formatOnSave": true,
+    "files.insertFinalNewline": true,
+    // go config
+    "go.toolsManagement.autoUpdate": true,
+    "[go]": {
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "always"
+        }
+    }
+}
