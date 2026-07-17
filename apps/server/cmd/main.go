@@ -163,7 +163,7 @@ func serverBootstrap(ctx context.Context, cfg Config, systemService system.Servi
 		}
 		log.Info("system configuration not found, initiating first-time setup")
 
-		// find or create the initial bootstrap user
+		// find or create the initial user
 		userEntity, created, err := userService.FindOrCreateByUsername(ctx, user.User{
 			FirstName:     cfg.App.Username,
 			Username:      cfg.App.Username,
@@ -172,12 +172,12 @@ func serverBootstrap(ctx context.Context, cfg Config, systemService system.Servi
 			EmailVerified: true,
 		})
 		if err != nil {
-			return fmt.Errorf("creating default bootstrap user: %w", err)
+			return fmt.Errorf("creating default user: %w", err)
 		}
 		if created {
-			log.Info("default bootstrap user created", "user", userEntity.Username)
+			log.Info("system user created", "user", userEntity.Username)
 		} else {
-			log.Info("default bootstrap user already exists, using existing account", "user", userEntity.Username)
+			log.Info("system user already exists, using existing account", "user", userEntity.Username)
 		}
 
 		// set this user as the immutable owner of the system
@@ -185,7 +185,7 @@ func serverBootstrap(ctx context.Context, cfg Config, systemService system.Servi
 		if err != nil {
 			return fmt.Errorf("configuring system: %w", err)
 		}
-		log.Info("system successfully initialized")
+		log.Info("system successfully configured")
 
 		return nil
 	}
@@ -195,6 +195,7 @@ func serverBootstrap(ctx context.Context, cfg Config, systemService system.Servi
 		return fmt.Errorf("loading system owner: %w", err)
 	}
 
+	// after the initialization of a qorvin database, the owner/primary user cannot be changed.
 	if userEntity.Username != cfg.App.Username {
 		return fmt.Errorf("local configuration username does not match registered system owner")
 	}
