@@ -12,6 +12,7 @@ import (
 
 	"github.com/lucjosin/qorv.in/internal/api"
 	"github.com/lucjosin/qorv.in/internal/database/mariadb"
+	"github.com/lucjosin/qorv.in/internal/domain/domain"
 	"github.com/lucjosin/qorv.in/internal/domain/system"
 	"github.com/lucjosin/qorv.in/internal/domain/user"
 	"github.com/lucjosin/qorv.in/internal/errs"
@@ -98,7 +99,11 @@ func main() {
 	userRepo := user.NewMariaDBRepository(db)
 	userService := user.NewService(userRepo)
 
-	err = serverBootstrap(ctx, cfg, systemService, userService)
+	// domain
+	domainRepo := domain.NewMariaDBRepository(db)
+	domainService := domain.NewService(domainRepo)
+
+	err = serverBootstrap(ctx, cfg, systemService, userService, domainService)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -147,7 +152,7 @@ func main() {
 }
 
 // serverBootstrap initializes the server.
-func serverBootstrap(ctx context.Context, cfg Config, systemService system.Service, userService user.Service) error {
+func serverBootstrap(ctx context.Context, cfg Config, systemService system.Service, userService user.Service, domainService domain.Service) error {
 	log := slogx.FromCtx(ctx)
 	log.Debug("bootstrapping server")
 
@@ -175,8 +180,6 @@ func serverBootstrap(ctx context.Context, cfg Config, systemService system.Servi
 			log.Info("default bootstrap user already exists, using existing account", "user", userEntity.Username)
 		}
 
-		// TODO: setup workspace and domain
-
 		// set this user as the immutable owner of the system
 		err = systemService.Configure(ctx, userEntity.ID)
 		if err != nil {
@@ -195,6 +198,20 @@ func serverBootstrap(ctx context.Context, cfg Config, systemService system.Servi
 	if userEntity.Username != cfg.App.Username {
 		return fmt.Errorf("local configuration username does not match registered system owner")
 	}
+
+	_, created, err := domainService.FindOrCreateByDomain(ctx, domain.Domain{
+		Domain: cfg.App.Domain,
+	})
+	if err != nil {
+		return fmt.Errorf("configuring domain: %w", err)
+	}
+	if created {
+		log.Info("system domain successfully configured", "domain", cfg.App.Domain)
+	} else {
+		log.Info("system domain already exists, using existing one", "domain", cfg.App.Domain)
+	}
+
+	// TODO: setup workspace
 
 	log.Info("server bootstrap complete")
 	return nil
