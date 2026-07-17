@@ -156,6 +156,7 @@ func serverBootstrap(ctx context.Context, cfg Config, systemService system.Servi
 	log := slogx.FromCtx(ctx)
 	log.Debug("bootstrapping server")
 
+	var userEntity user.User
 	systemEntity, err := systemService.Info(ctx)
 	if err != nil {
 		if !errors.Is(err, errs.ErrNotFound) {
@@ -186,13 +187,13 @@ func serverBootstrap(ctx context.Context, cfg Config, systemService system.Servi
 			return fmt.Errorf("configuring system: %w", err)
 		}
 		log.Info("system successfully configured")
-
-		return nil
 	}
 
-	userEntity, err := userService.FindByID(ctx, systemEntity.OwnerUserID)
-	if err != nil {
-		return fmt.Errorf("loading system owner: %w", err)
+	if (userEntity == user.User{}) {
+		userEntity, err = userService.FindByID(ctx, systemEntity.OwnerUserID)
+		if err != nil {
+			return fmt.Errorf("loading system owner: %w", err)
+		}
 	}
 
 	// after the initialization of a qorvin database, the owner/primary user cannot be changed.
