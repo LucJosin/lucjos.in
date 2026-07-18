@@ -1,0 +1,39 @@
+name: Run lint
+
+on:
+  push:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: "go.mod"
+
+      - name: Set up Python
+        uses: "actions/setup-python@v6"
+        with:
+          python-version: "3.10"
+          cache: "pip"
+
+      - name: Set up golangci-lint version
+        run: |
+          GOLINT_VERSION=$(cat .golangci-version)
+          echo "golangci-lint version: $GOLINT_VERSION"
+          echo "GOLINT_VERSION=$GOLINT_VERSION" >> $GITHUB_ENV
+
+      - name: Set up SQLFluff
+        run: "pip install sqlfluff"
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: ${{ env.GOLINT_VERSION }}
+
+      - name: Run sqlfluff
+        run: make lint/sql
