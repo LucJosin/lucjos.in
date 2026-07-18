@@ -1,0 +1,52 @@
+version: "2"
+
+run:
+  timeout: 5m
+
+# https://chromium.googlesource.com/external/github.com/docker/cli/+/refs/heads/master/.golangci.yml
+linters:
+  enable:
+    - asasalint # Detects "[]any" used as argument for variadic "func(...any)".
+    - bodyclose # Ensures bodies are properly closed.
+    - copyloopvar # Detects places where loop variables are copied.
+    - dogsled # Detects assignments with too many blank identifiers.
+    - dupword # Detects duplicate words.
+    - errcheck # Ensures errors are properly checked.
+    - fatcontext # Detects nested context usage in loops or closures.
+    - gocritic # Metalinter; detects bugs, performance, and styling issues.
+    - gocyclo # Calculates cyclomatic complexity of functions.
+    - gosec # Detects security problems.
+    - importas # Enforces consistent import aliases.
+    - makezero # Finds slice declarations with non-zero initial length.
+    - misspell # Finds common misspellings in comments and strings.
+    - musttag # Ensures struct fields have required tags (e.g., json).
+    - nakedret # Detects uses of naked returns.
+    - nosprintfhostport # Detects misuse of Sprintf for host:port construction.
+    - perfsprint # Suggests faster alternatives to fmt.Sprintf.
+    - prealloc # Detects slices that could be preallocated.
+    - predeclared # Detects shadowing of Go predeclared identifiers.
+    - reassign # Detects reassigning top-level variables in other packages.
+    - revive # Linter for style, conventions, and best practices.
+    - sqlclosecheck # Ensures database rows/statements are properly closed.
+    - thelper # Detects test helpers without t.Helper().
+    - tparallel # Detects inappropriate usage of t.Parallel().
+    - unconvert # Detects unnecessary type conversions.
+    - unparam # Detects unused function parameters.
+    - unused # Detects unused code (variables, functions, etc.).
+
+  exclusions:
+    rules:
+      # maybe add comments to the packages?
+      - text: "package-comments: should have a package comment"
+        linters:
+          - revive
+
+      # not everything needs a comment
+      - text: "exported: exported .* should have comment or be unexported"
+        linters:
+          - revive
+
+      # stutter is acceptable here because 'clarity > brevity' :)
+      - text: "exported: type name will be used as .* by other packages, and that stutters; consider calling this .*"
+        linters:
+          - revive

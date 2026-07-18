@@ -1,8 +1,10 @@
 .DEFAULT_GOAL := help
+MAKEFLAGS += --no-print-directory
 
 # Colors
 RED     := $(shell tput -Txterm setaf 1)
 GREEN   := $(shell tput -Txterm setaf 2)
+YELLOW  := $(shell tput -Txterm setaf 3)
 BLUE    := $(shell tput -Txterm setaf 4)
 CYAN    := $(shell tput -Txterm setaf 6)
 RESET   := $(shell tput -Txterm sgr0)
@@ -13,13 +15,6 @@ SERVER_DIR=apps/server
 # Docker
 COMPOSE_PATH=compose.yaml
 
-# Migration
-MIGRATIONS_DIR := internal/database/mariadb/migrations
-MIGRATE_CMD    := go run --tags mysql \
-	github.com/golang-migrate/migrate/v4/cmd/migrate \
-	-path=$(MIGRATIONS_DIR) \
-	-database="mysql://$$DATABASE_USER:$$DATABASE_PASSWORD@tcp($$DATABASE_HOST:$$DATABASE_PORT)/$$DATABASE_NAME?multiStatements=true"
-
 # Env
 ENV := set -a; . "./.env"; set +a;
 
@@ -27,44 +22,57 @@ ENV := set -a; . "./.env"; set +a;
 
 .PHONY: server/run
 server/run: ## Run the server application
-	@$(ENV) cd $(SERVER_DIR) && go run cmd/main.go
+	@$(MAKE) -C $(SERVER_DIR) server/run
+
+## Quality and checks
+
+.PHONY: lint
+lint: ## Run linters
+	@$(MAKE) -C $(SERVER_DIR) lint
+
+.PHONY: lint/sql
+lint/sql: ## Run SQL linter
+	@$(MAKE) -C $(SERVER_DIR) lint/sql
+
+.PHONY: fmt
+fmt: ## Run Go and SQL formatters
+	@$(MAKE) -C $(SERVER_DIR) fmt
+
+.PHONY: test
+test: ## Run tests
+	@$(MAKE) -C $(SERVER_DIR) test
 
 ## Migration
 
 .PHONY: migrate/new
 migrate/new: ## Create a new server migration. Usage: make migrate/new NAME=create_users
-	@if [ -z "$(NAME)" ]; then \
-		echo "ERROR: NAME is required. Example: make migrate/new NAME=create_users"; \
-		exit 1; \
-	fi
-	@cd $(SERVER_DIR) && go run github.com/golang-migrate/migrate/v4/cmd/migrate \
-		create -ext sql -dir $(MIGRATIONS_DIR) -seq $(NAME)
+	@$(MAKE) -C $(SERVER_DIR) migrate/new
 
 .PHONY: migrate/up
 migrate/up: ## Run server migrations
-	@$(ENV) cd $(SERVER_DIR) && $(MIGRATE_CMD) up
+	$(MAKE) -C $(SERVER_DIR) migrate/up
 
 .PHONY: migrate/down
 migrate/down: ## Rollback one server migration
-	@$(ENV) cd $(SERVER_DIR) && $(MIGRATE_CMD) down 1
+	@$(MAKE) -C $(SERVER_DIR) migrate/down
 
 .PHONY: migrate/drop
 migrate/drop: ## Drop server database
-	@$(ENV) cd $(SERVER_DIR) && $(MIGRATE_CMD) drop
+	@$(MAKE) -C $(SERVER_DIR) migrate/drop
 
 .PHONY: migrate/version
 migrate/version: ## Check server migration version
-	@$(ENV) cd $(SERVER_DIR) && $(MIGRATE_CMD) version
+	@$(MAKE) -C $(SERVER_DIR) migrate/version
 
 ## Go tooling
 
-.PHONY: server/deps
+.PHONY: deps
 deps: ## Download Go dependencies
-	@cd $(SERVER_DIR) && go mod tidy
+	@$(MAKE) -C $(SERVER_DIR) deps
 
-.PHONY: server/vuln
+.PHONY: vuln
 vuln: ## Check for vulnerabilities in Go dependencies
-	@cd $(SERVER_DIR) && go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+	@$(MAKE) -C $(SERVER_DIR) vuln
 
 ## Docker commands
 
@@ -85,6 +93,10 @@ docker/reset: docker/down ## Stop, delete, build and start all local containers.
 	@$(ENV) docker compose -f ${COMPOSE_PATH} up -d
 
 ## Help
+
+.PHONY: validate-deps
+validate-deps: ## Validate require dependencies
+	@$(MAKE) -C $(SERVER_DIR) validate-deps
 
 .PHONY: help
 help: ## Show this help
