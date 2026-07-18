@@ -10,8 +10,9 @@ import (
 )
 
 type Service interface {
-	FindByID(ctx context.Context, ID uuid.UUID) (User, error)
+	FindByID(ctx context.Context, id uuid.UUID) (User, error)
 	FindOrCreateByUsername(ctx context.Context, entity User) (User, bool, error)
+	ExistsByID(ctx context.Context, id uuid.UUID) (bool, error)
 }
 
 type service struct {
@@ -52,4 +53,8 @@ func (s *service) FindOrCreateByUsername(ctx context.Context, entity User) (User
 	}
 
 	return User{}, false, fmt.Errorf("creating user: %w", err)
+}
+
+func (s *service) ExistsByID(ctx context.Context, id uuid.UUID) (bool, error) {
+	return s.repo.ExistsByID(ctx, id)
 }

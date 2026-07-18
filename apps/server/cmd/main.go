@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/lucjosin/qorv.in/internal/domain/domain"
 	"github.com/lucjosin/qorv.in/internal/domain/system"
 	"github.com/lucjosin/qorv.in/internal/domain/user"
+	"github.com/lucjosin/qorv.in/internal/domain/workspace"
 	"github.com/lucjosin/qorv.in/internal/errs"
 	"github.com/lucjosin/qorv.in/internal/slogx"
 
@@ -103,7 +105,11 @@ func main() {
 	domainRepo := domain.NewMariaDBRepository(db)
 	domainService := domain.NewService(domainRepo)
 
-	err = serverBootstrap(ctx, cfg, systemService, userService, domainService)
+	// workspace
+	workspaceRepo := workspace.NewMariaDBRepository(db)
+	workspaceService := workspace.NewService(workspaceRepo, userService)
+
+	err = serverBootstrap(ctx, cfg, systemService, userService, domainService, workspaceService)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -152,7 +158,14 @@ func main() {
 }
 
 // serverBootstrap initializes the server.
-func serverBootstrap(ctx context.Context, cfg Config, systemService system.Service, userService user.Service, domainService domain.Service) error {
+func serverBootstrap(
+	ctx context.Context,
+	cfg Config,
+	systemService system.Service,
+	userService user.Service,
+	domainService domain.Service,
+	wsService workspace.Service,
+) error {
 	log := slogx.FromCtx(ctx)
 	log.Debug("bootstrapping server")
 
@@ -201,7 +214,7 @@ func serverBootstrap(ctx context.Context, cfg Config, systemService system.Servi
 		return errors.New("local configuration username does not match registered system owner")
 	}
 
-	_, created, err := domainService.FindOrCreateByDomain(ctx, domain.Domain{
+	domainEntity, created, err := domainService.FindOrCreateByDomain(ctx, domain.Domain{
 		Domain: cfg.App.Domain,
 	})
 	if err != nil {
@@ -213,7 +226,34 @@ func serverBootstrap(ctx context.Context, cfg Config, systemService system.Servi
 		log.Info("system domain already exists, using existing one", "domain", cfg.App.Domain)
 	}
 
-	// TODO: setup workspace
+	wsEntity, created, err := wsService.FindOrCreateByDomainID(ctx, workspace.Workspace{
+		Name:        cfg.App.WorkspaceName,
+		Slug:        strings.ToLower(cfg.App.Username) + "-workspace", // TODO: apply slugfy
+		Description: "Default workspace for " + cfg.App.Username,
+		DomainID:    domainEntity.ID,
+	})
+	if err != nil {
+		return fmt.Errorf("configuring workspace: %w", err)
+	}
+	if created {
+		log.Info("system workspace configured", "workspace", cfg.App.WorkspaceName)
+	} else {
+		log.Info("system workspace already exists, using existing one", "workspace", cfg.App.WorkspaceName)
+	}
+
+	err = wsService.AddUser(ctx, workspace.WorkspaceUser{
+		WorkspaceID: wsEntity.ID,
+		UserID:      userEntity.ID,
+		Role:        workspace.AdminRole,
+	})
+	if err != nil {
+		if !errors.Is(err, errs.ErrConflict) {
+			return fmt.Errorf("adding user to workspace: %w", err)
+		}
+		log.Info("system workspace already has the user assigned, nothing to do", "workspace", wsEntity.Name, "user", userEntity.Username)
+	} else {
+		log.Info("system workspace user assigned", "workspace", wsEntity.Name, "user", userEntity.Username)
+	}
 
 	log.Info("server bootstrap complete")
 	return nil
