@@ -83,15 +83,19 @@ func NewWithContext(ctx context.Context) (context.Context, *Logger, error) {
 }
 
 // New initialize a new slog and set up configuration with logger level and output.
-//
-// If config level is empty, will be set to DefaultLogLevel
 func New() (*Logger, error) {
 	logLevel := os.Getenv("LOG_LEVEL")
 	logFormat := os.Getenv("LOG_FORMAT")
+	if logFormat == "" {
+		logFormat = FormatJSON
+	}
 
-	parsedLevel, err := parseLevel(logLevel)
+	parsedLevel, useDefault, err := parseLevel(logLevel)
 	if err != nil {
-		return nil, err
+		if !useDefault {
+			return nil, err
+		}
+		parsedLevel = DefaultLogLevel
 	}
 
 	opts := &slog.HandlerOptions{
@@ -143,21 +147,24 @@ func With(args ...any) *Logger {
 	return &Logger{slog.With(args...)}
 }
 
-func parseLevel(level string) (slog.Level, error) {
+func parseLevel(level string) (slog.Level, bool, error) {
 	level = strings.ToLower(level)
 	switch level {
+	case "":
+		// level not defined, use the default one
+		return DefaultLogLevel, true, nil
 	case traceLevel:
-		return LevelTrace, nil
+		return LevelTrace, false, nil
 	case debugLevel:
-		return slog.LevelDebug, nil
+		return slog.LevelDebug, false, nil
 	case infoLevel:
-		return slog.LevelInfo, nil
+		return slog.LevelInfo, false, nil
 	case warnLevel:
-		return slog.LevelWarn, nil
+		return slog.LevelWarn, false, nil
 	case errorLevel:
-		return slog.LevelError, nil
+		return slog.LevelError, false, nil
 	default:
-		return DefaultLogLevel, errors.New("invalid log level")
+		return -1, false, errors.New("invalid log level")
 	}
 }
 
