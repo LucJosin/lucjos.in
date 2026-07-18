@@ -40,6 +40,7 @@ jobs:
         uses: golangci/golangci-lint-action@v9
         with:
           version: ${{ env.GOLINT_VERSION }}
+          working-directory: ${{ matrix.app_path }}
 
       - name: Run sqlfluff
         run: make lint/sql
