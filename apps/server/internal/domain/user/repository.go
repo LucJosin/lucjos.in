@@ -10,9 +10,9 @@ import (
 )
 
 type Repository interface {
-	FindByID(ctx context.Context, ID uuid.UUID) (User, error)
+	FindByID(ctx context.Context, id uuid.UUID) (User, error)
 	FindByUsername(ctx context.Context, username string) (User, error)
-	ExistsByID(ctx context.Context, ID uuid.UUID) (bool, error)
+	ExistsByID(ctx context.Context, id uuid.UUID) (bool, error)
 	Create(ctx context.Context, user User) (User, error)
 }
 

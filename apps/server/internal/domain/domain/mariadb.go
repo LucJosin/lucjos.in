@@ -3,7 +3,6 @@ package domain
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"time"
 
 	"github.com/lucjosin/qorv.in/internal/database/mariadb"
@@ -29,10 +28,7 @@ func NewMariaDBRepository(db *mariadb.Database) Repository {
 }
 
 func (r *MariaDBRepository) FindByDomain(ctx context.Context, domain string) (Domain, error) {
-	query := fmt.Sprintf(
-		`%s WHERE d.domain = ? AND d.deleted_at IS NULL`,
-		selectDomainsStmt,
-	)
+	query := selectDomainsStmt + ` WHERE d.domain = ? AND d.deleted_at IS NULL`
 
 	row := r.db.QueryRowContext(ctx, query, domain)
 	entity, err := scanRow(row)

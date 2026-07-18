@@ -198,7 +198,7 @@ func serverBootstrap(ctx context.Context, cfg Config, systemService system.Servi
 
 	// after the initialization of a qorvin database, the owner/primary user cannot be changed.
 	if userEntity.Username != cfg.App.Username {
-		return fmt.Errorf("local configuration username does not match registered system owner")
+		return errors.New("local configuration username does not match registered system owner")
 	}
 
 	_, created, err := domainService.FindOrCreateByDomain(ctx, domain.Domain{

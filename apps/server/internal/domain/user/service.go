@@ -24,8 +24,8 @@ func NewService(repo Repository) Service {
 	}
 }
 
-func (s *service) FindByID(ctx context.Context, ID uuid.UUID) (User, error) {
-	return s.repo.FindByID(ctx, ID)
+func (s *service) FindByID(ctx context.Context, id uuid.UUID) (User, error) {
+	return s.repo.FindByID(ctx, id)
 }
 
 func (s *service) FindOrCreateByUsername(ctx context.Context, entity User) (User, bool, error) {

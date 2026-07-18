@@ -37,13 +37,10 @@ func NewMariaDBRepository(db *mariadb.Database) Repository {
 	}
 }
 
-func (r *MariaDBRepository) FindByID(ctx context.Context, ID uuid.UUID) (User, error) {
-	query := fmt.Sprintf(
-		`%s WHERE u.id = ? AND u.deleted_at IS NULL`,
-		selectUsersStmt,
-	)
+func (r *MariaDBRepository) FindByID(ctx context.Context, id uuid.UUID) (User, error) {
+	query := selectUsersStmt + ` WHERE u.id = ? AND u.deleted_at IS NULL`
 
-	row := r.db.QueryRowContext(ctx, query, ID)
+	row := r.db.QueryRowContext(ctx, query, id)
 	entity, err := scanRow(row)
 	if err != nil {
 		return User{}, fmt.Errorf("scanning user: %w", err)
@@ -53,10 +50,7 @@ func (r *MariaDBRepository) FindByID(ctx context.Context, ID uuid.UUID) (User, e
 }
 
 func (r *MariaDBRepository) FindByUsername(ctx context.Context, username string) (User, error) {
-	query := fmt.Sprintf(
-		`%s WHERE u.username = ? AND u.deleted_at IS NULL`,
-		selectUsersStmt,
-	)
+	query := selectUsersStmt + ` WHERE u.username = ? AND u.deleted_at IS NULL`
 
 	row := r.db.QueryRowContext(ctx, query, username)
 	entity, err := scanRow(row)
@@ -67,7 +61,7 @@ func (r *MariaDBRepository) FindByUsername(ctx context.Context, username string)
 	return entity, nil
 }
 
-func (r *MariaDBRepository) ExistsByID(ctx context.Context, ID uuid.UUID) (bool, error) {
+func (r *MariaDBRepository) ExistsByID(ctx context.Context, id uuid.UUID) (bool, error) {
 	query := fmt.Sprintf(`
 	SELECT EXISTS (
 		%s
@@ -77,7 +71,7 @@ func (r *MariaDBRepository) ExistsByID(ctx context.Context, ID uuid.UUID) (bool,
 	)`, selectUsersStmt)
 
 	var exists bool
-	err := r.db.QueryRowContext(ctx, query, ID).Scan(&exists)
+	err := r.db.QueryRowContext(ctx, query, id).Scan(&exists)
 	if err != nil {
 		return false, fmt.Errorf("fetching user: %w", err)
 	}
