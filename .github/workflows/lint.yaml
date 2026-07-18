@@ -6,6 +6,11 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app_path: ["apps/server"]
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -13,7 +18,8 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
-          go-version-file: "go.mod"
+          go-version-file: "${{ matrix.app_path }}/go.mod"
+          cache-dependency-path: "${{ matrix.app_path }}/go.sum"
 
       - name: Set up Python
         uses: "actions/setup-python@v6"
