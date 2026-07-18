@@ -93,7 +93,7 @@ func Migrate(ctx context.Context, config Config) error {
 		return fmt.Errorf("creating migration driver: %v", err)
 	}
 
-	source, err := iofs.New(migrations.FS, "migrations")
+	source, err := iofs.New(migrations.FS, ".")
 	if err != nil {
 		return fmt.Errorf("creating migration source: %v", err)
 	}
