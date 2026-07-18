@@ -3,11 +3,11 @@ package mariadb
 import (
 	"context"
 	"database/sql"
-	"embed"
 	"errors"
 	"fmt"
 
 	"github.com/lucjosin/qorv.in/internal/slogx"
+	"github.com/lucjosin/qorv.in/migrations"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/mysql"
@@ -15,11 +15,6 @@ import (
 
 	driver "github.com/go-sql-driver/mysql"
 )
-
-// migrationsFS contains all SQL files used in mariadb migration.
-//
-//go:embed migrations/*.sql
-var migrationsFS embed.FS
 
 type Database = sql.DB
 
@@ -98,7 +93,7 @@ func Migrate(ctx context.Context, config Config) error {
 		return fmt.Errorf("creating migration driver: %v", err)
 	}
 
-	source, err := iofs.New(migrationsFS, "migrations")
+	source, err := iofs.New(migrations.FS, "migrations")
 	if err != nil {
 		return fmt.Errorf("creating migration source: %v", err)
 	}

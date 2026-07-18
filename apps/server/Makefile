@@ -9,7 +9,7 @@ CYAN    := $(shell tput -Txterm setaf 6)
 RESET   := $(shell tput -Txterm sgr0)
 
 # Migration
-MIGRATIONS_DIR := internal/database/mariadb/migrations
+MIGRATIONS_DIR := migrations
 MIGRATE_CMD    := go run --tags mysql \
 	github.com/golang-migrate/migrate/v4/cmd/migrate \
 	-path=$(MIGRATIONS_DIR) \

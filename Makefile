@@ -1,4 +1,5 @@
 .DEFAULT_GOAL := help
+# Don't print the child makefiles while calling them
 MAKEFLAGS += --no-print-directory
 
 # Colors
