@@ -16,8 +16,8 @@ All migrations are structured in matching pairs:
 - **`{version}`**: Sequential 64-bit integer, left-padded with zeros (e.g., `000001`).
 - **`{title}`**: Snake_case description of the change (e.g., `create_users_table`).
 
-> [!INFO]
-> When using the `golang-migrate/migrate` cli, you don't need to specify the sequential number, provide only the title.
+> [!NOTE]
+> When using the `golang-migrate/migrate` cli, **you don't need to specify the sequential number**, provide only the title.
 
 ### Creating New Migrations
 
