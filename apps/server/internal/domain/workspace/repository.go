@@ -10,13 +10,9 @@ import (
 )
 
 type Repository interface {
-	// workspace
-
 	FindByDomainID(ctx context.Context, domainID uuid.UUID) (Workspace, error)
 	ExistsByID(ctx context.Context, ID uuid.UUID) (bool, error)
 	Create(ctx context.Context, entity Workspace) (Workspace, error)
-
-	// workspace user
 
 	CreateWorkspaceUser(ctx context.Context, workspaceUser WorkspaceUser) error
 }
