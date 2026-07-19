@@ -13,12 +13,15 @@ import (
 
 	"github.com/lucjosin/qorv.in/internal/api"
 	"github.com/lucjosin/qorv.in/internal/database/mariadb"
+	"github.com/lucjosin/qorv.in/internal/domain/collection"
 	"github.com/lucjosin/qorv.in/internal/domain/domain"
 	"github.com/lucjosin/qorv.in/internal/domain/system"
 	"github.com/lucjosin/qorv.in/internal/domain/user"
 	"github.com/lucjosin/qorv.in/internal/domain/workspace"
 	"github.com/lucjosin/qorv.in/internal/errs"
 	"github.com/lucjosin/qorv.in/internal/slogx"
+
+	collectionsv1 "github.com/lucjosin/qorv.in/internal/api/v1/collections"
 
 	"github.com/caarlos0/env/v11"
 	"github.com/go-chi/chi/v5"
@@ -109,6 +112,10 @@ func main() {
 	workspaceRepo := workspace.NewMariaDBRepository(db)
 	workspaceService := workspace.NewService(workspaceRepo, userService)
 
+	// collection
+	collectionRepo := collection.NewMariaDBRepository(db)
+	collectionService := collection.NewService(collectionRepo)
+
 	err = serverBootstrap(ctx, cfg, systemService, userService, domainService, workspaceService)
 	if err != nil {
 		log.Panic(err)
@@ -123,6 +130,10 @@ func main() {
 	r.Route("/api", func(r chi.Router) {
 		// public routes
 		api.NewHandler().RegisterRoutes(r)
+
+		r.Route("/v1", func(r chi.Router) {
+			collectionsv1.NewHandler(collectionService).RegisterRoutes(r)
+		})
 	})
 
 	errLog := slog.NewLogLogger(log.Handler(), slog.LevelError)
