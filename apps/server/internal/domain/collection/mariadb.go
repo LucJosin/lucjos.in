@@ -44,7 +44,7 @@ func (r *MariaDBRepository) List(ctx context.Context) ([]Collection, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer database.CloseRows(ctx, rows)
+	defer database.Close(ctx, rows)
 
 	var entities []Collection
 	for rows.Next() {
