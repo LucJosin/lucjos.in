@@ -25,9 +25,6 @@ func (h *Handler) RegisterRoutes(r chi.Router) {
 	})
 }
 
-func (h *Handler) RegisterPublicRoutes(r chi.Router) {
-}
-
 func (h *Handler) list(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 	log := slogx.FromCtx(ctx)
