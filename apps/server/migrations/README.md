@@ -39,7 +39,7 @@ Use the following SQL patterns to ensure migrations execute safely and can rollb
 
 ### Create Table
 
-- **`000001_create_users_table.up.sql`**
+- **000001_create_users_table.up.sql**
     ```sql
     CREATE TABLE IF NOT EXISTS users (
         id BIGSERIAL PRIMARY KEY,
@@ -48,7 +48,7 @@ Use the following SQL patterns to ensure migrations execute safely and can rollb
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
     );
     ```
-- **`000001_create_users_table.down.sql`**
+- **000001_create_users_table.down.sql**
     ```sql
     DROP TABLE IF EXISTS users;
     ```
@@ -85,6 +85,27 @@ Use the following SQL patterns to ensure migrations execute safely and can rollb
     ```sql
     DROP INDEX IF EXISTS idx_users_email;
     ```
+
+## SQL Linting & Formatting
+
+To maintain consistency and catch style errors across all migration files, we use **SQLFluff**. The formatting and linting rules are governed by the `.sqlfluff` configuration file located at the repository root.
+
+You can validate and fix your SQL files automatically using the provided [Makefile](../Makefile) helpers:
+
+### Lint SQL Files
+To analyze your files for rule violations without modifying them, run:
+```bash
+make lint
+```
+
+### Auto-Format SQL Files
+To automatically fix style issues, spacing, and casing rules according to our config, run:
+```bash
+make fmt
+```
+
+> [!TIP]
+> Always run `make fmt` before committing or modifying SQL files. Your code must follow the project style guidelines, or the CI lint check will fail.
 
 ## Notes
 
