@@ -35,19 +35,20 @@ func (h *Handler) list(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	workspaces := make([]CollectionResponse, len(entities))
+	response := make([]CollectionResponse, len(entities))
 	for i, entity := range entities {
 		entity, err := h.toResponse(entity)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		workspaces[i] = entity
+		response[i] = entity
 	}
 
+	// TODO: add specific httpx package to handle writing and errors
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(workspaces)
+	err = json.NewEncoder(w).Encode(response)
 	if err != nil {
 		log.Error("couldn't write response for collections", "error", err)
 	}
