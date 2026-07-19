@@ -13,16 +13,16 @@ import (
 
 const selectWorkspacesStmt = `
 	SELECT
-		o.id,
-		o.public_id,
-		o.name,
-		o.description,
-		o.color,
-		o.deleted_at,
-		o.created_at,
-		o.updated_at
+		w.id,
+		w.public_id,
+		w.name,
+		w.description,
+		w.color,
+		w.deleted_at,
+		w.created_at,
+		w.updated_at
 	FROM 
-		workspaces o`
+		workspaces w`
 
 type MariaDBRepository struct {
 	db *mariadb.Database
@@ -35,7 +35,7 @@ func NewMariaDBRepository(db *mariadb.Database) Repository {
 }
 
 func (r *MariaDBRepository) FindByID(ctx context.Context, id uuid.UUID) (Workspace, error) {
-	query := selectWorkspacesStmt + ` WHERE o.id = ? AND o.deleted_at IS NULL`
+	query := selectWorkspacesStmt + ` WHERE w.id = ? AND w.deleted_at IS NULL`
 
 	row := r.db.QueryRowContext(ctx, query, id)
 	entity, err := scanRow(row)
@@ -47,7 +47,7 @@ func (r *MariaDBRepository) FindByID(ctx context.Context, id uuid.UUID) (Workspa
 }
 
 func (r *MariaDBRepository) FindByDomainID(ctx context.Context, domainID uuid.UUID) (Workspace, error) {
-	query := selectWorkspacesStmt + ` WHERE o.domain_id = ? AND o.deleted_at IS NULL`
+	query := selectWorkspacesStmt + ` WHERE w.domain_id = ? AND w.deleted_at IS NULL`
 
 	row := r.db.QueryRowContext(ctx, query, domainID)
 	entity, err := scanRow(row)
@@ -63,7 +63,7 @@ func (r *MariaDBRepository) ExistsByID(ctx context.Context, id uuid.UUID) (bool,
 	SELECT EXISTS (
 		%s
 		WHERE 
-			o.id = ? AND o.deleted_at IS NULL
+			w.id = ? AND w.deleted_at IS NULL
 		LIMIT 1
 	)`, selectWorkspacesStmt)
 
