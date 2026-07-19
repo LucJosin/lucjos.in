@@ -8,7 +8,7 @@ import (
 	"github.com/lucjosin/qorv.in/internal/domain/collection"
 )
 
-type Collection struct {
+type CollectionResponse struct {
 	ID          uuid.UUID  `json:"id"`
 	PublicID    uuid.UUID  `json:"public_id"`
 	WorkspaceID uuid.UUID  `json:"workspace_id"`
@@ -25,12 +25,12 @@ type Collection struct {
 	UpdatedAt   time.Time  `json:"updated_at"`
 }
 
-func (h *Handler) toResponse(e collection.Collection) (Collection, error) {
+func (h *Handler) toResponse(e collection.Collection) (CollectionResponse, error) {
 	if e.PublicID == uuid.Nil {
-		return Collection{}, errors.New("workspace has empty public ID")
+		return CollectionResponse{}, errors.New("workspace has empty public ID")
 	}
 
-	res := Collection{
+	res := CollectionResponse{
 		ID:          e.PublicID,
 		WorkspaceID: e.WorkspaceID,
 		Name:        e.Name,

@@ -35,7 +35,7 @@ func (h *Handler) list(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	workspaces := make([]Collection, len(entities))
+	workspaces := make([]CollectionResponse, len(entities))
 	for i, entity := range entities {
 		entity, err := h.toResponse(entity)
 		if err != nil {
