@@ -49,15 +49,16 @@ func (h *CollectionHandler) list(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := make([]CollectionResponse, len(entities))
-	for i, entity := range entities {
+	for _, entity := range entities {
 		entity, err := h.toResponse(entity)
 		if err != nil {
 			internalError(ctx, w, err)
 			return
 		}
-		response[i] = entity
+		response = append(response, entity)
 	}
 
+	// TODO: add paginated response
 	writeResponse(ctx, w, http.StatusOK, response)
 }
 
