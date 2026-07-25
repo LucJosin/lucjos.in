@@ -21,7 +21,7 @@ import (
 	"github.com/lucjosin/qorv.in/internal/errs"
 	"github.com/lucjosin/qorv.in/internal/slogx"
 
-	collectionsv1 "github.com/lucjosin/qorv.in/internal/api/v1/collections"
+	apiv1 "github.com/lucjosin/qorv.in/internal/api/v1"
 
 	"github.com/caarlos0/env/v11"
 	"github.com/go-chi/chi/v5"
@@ -128,11 +128,12 @@ func main() {
 	r.Use(middleware.AllowContentType("application/json"))
 
 	r.Route("/api", func(r chi.Router) {
-		// public routes
-		api.NewHandler().RegisterRoutes(r)
+		// root handlers
+		api.NewHandler(r)
 
+		// api v1 handlers
 		r.Route("/v1", func(r chi.Router) {
-			collectionsv1.NewHandler(collectionService).RegisterRoutes(r)
+			apiv1.NewCollectionHandler(r, collectionService)
 		})
 	})
 
