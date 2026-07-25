@@ -1,29 +1,26 @@
 package api
 
 import (
-	"log/slog"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/lucjosin/qorv.in/internal/slogx"
 )
 
 type Handler struct {
 }
 
-func NewHandler() *Handler {
-	return &Handler{}
-}
-
-// RegisterRoutes register all v1 HTTP API routes
-func (h *Handler) RegisterRoutes(r chi.Router) {
+// NewHandler registers the api HTTP handlers.
+func NewHandler(r chi.Router) {
+	h := &Handler{}
 	r.Get("/ping", h.ping)
 }
 
-func (h *Handler) ping(w http.ResponseWriter, _ *http.Request) {
+func (h *Handler) ping(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	_, err := w.Write([]byte("pong"))
 	if err != nil {
-		slog.Error("writing ping response", "error", err)
+		slogx.FromCtx(r.Context()).Error("writing ping response", "error", err)
 	}
 }
