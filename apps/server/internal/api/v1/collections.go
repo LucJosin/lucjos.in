@@ -1,9 +1,11 @@
-package collections
+package v1
 
 import (
 	"errors"
+	"net/http"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/gofrs/uuid/v5"
 	"github.com/lucjosin/qorv.in/internal/domain/collection"
 )
@@ -25,7 +27,41 @@ type CollectionResponse struct {
 	UpdatedAt   time.Time  `json:"updated_at"`
 }
 
-func (h *Handler) toResponse(e collection.Collection) (CollectionResponse, error) {
+type CollectionHandler struct {
+	service collection.Service
+}
+
+// NewCollectionHandler registers the collection HTTP handlers.
+func NewCollectionHandler(r chi.Router, service collection.Service) {
+	h := &CollectionHandler{service: service}
+	r.Route("/collections", func(r chi.Router) {
+		r.Get("/", h.list)
+	})
+}
+
+func (h *CollectionHandler) list(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	entities, err := h.service.List(ctx)
+	if err != nil {
+		internalError(ctx, w, err)
+		return
+	}
+
+	response := make([]CollectionResponse, len(entities))
+	for i, entity := range entities {
+		entity, err := h.toResponse(entity)
+		if err != nil {
+			internalError(ctx, w, err)
+			return
+		}
+		response[i] = entity
+	}
+
+	writeResponse(ctx, w, http.StatusOK, response)
+}
+
+func (h *CollectionHandler) toResponse(e collection.Collection) (CollectionResponse, error) {
 	if e.PublicID == uuid.Nil {
 		return CollectionResponse{}, errors.New("workspace has empty public ID")
 	}
