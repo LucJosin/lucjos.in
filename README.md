@@ -16,7 +16,8 @@ A self-hosted, personal URL shortener and API for individuals and small teams. \
 </div>
 
 > [!WARNING]
-> This Project is Under Active Development.
+> This Project is Under Active Development. \
+> See the [dev branch](https://github.com/LucJosin/qorv.in/tree/dev) for the latest updates.
 
 > [!NOTE]
 > This project is a complete rewrite to the archived version: [lucjos.in-old](https://github.com/LucJosin/lucjos.in-old).
